@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+LEVEL=gpio2
+
+while true; do 
+	case $(cat /sys/class/gpio/$LEVEL/value) in
+		0)
+			[ -f /var/run/greeny-water-alert ] && rm -rf /var/run/greeny-water-alert
+		;;
+		1)
+			[ ! -f /var/run/greeny-water-alert ] && touch /var/run/greeny-water-alert && telegram-send "Water level is low!"
+		;;
+	esac
+	sleep 1
+done
