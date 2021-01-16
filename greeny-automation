@@ -2,6 +2,9 @@
 
 LEVEL=gpio2
 
+trap "telegram-send 'Shitting down'" SIGINT
+telegram-send 'Starting up'
+
 while true; do 
 	case $(cat /sys/class/gpio/$LEVEL/value) in
 		0)
