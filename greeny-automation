@@ -2,7 +2,7 @@
 
 LEVEL=gpio2
 
-trap "telegram-send 'Shitting down'" SIGINT
+trap "telegram-send 'Shitting down' && exit" SIGINT
 telegram-send 'Starting up'
 
 while true; do 
