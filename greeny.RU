@@ -1,0 +1,6 @@
+message_start="Запускаюсь"
+message_stop="Останавливаюсь"
+message_lightup="Освещение включено"
+message_lightdown="Освещение ыключено"
+message_waterlow="Низкий уровень воды"
+message_waternormal="Уровень воды поднялся"
