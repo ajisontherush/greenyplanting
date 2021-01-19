@@ -4,7 +4,6 @@ notify () {
 	local message="$1"
 	shift
 	for destination in "$@"; do
-		echo "$destination"
 		case "$destination" in
 			stdout)    echo "$(date) | $message";;
 			syslog)    logger "$message";;
