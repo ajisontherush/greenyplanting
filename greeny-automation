@@ -25,13 +25,22 @@ notify "$message_start" "${notification_startstop[@]}"
 
 while true; do
 	for zone in "${zones[@]}"; do
+	
 		lightrelay="$zone"_lightrelay
 		waterlevel="$zone"_waterlevel
+		lightup="$zone"_lightup
+		lightdown="$zone"_lightdown
 		
 		case $(cat /sys/class/gpio/${!waterlevel}/value) in
-			0)  [ -f /var/run/greeny-water-alert ] && rm -rf /var/run/greeny-water-alert && notify "$zone: $message_waternormal" "${notification_waterlevel[@]}" ;;
-			1)  [ ! -f /var/run/greeny-water-alert ] && touch /var/run/greeny-water-alert && notify "$zone: $message_waterlow" "${notification_waterlevel[@]}" ;;
+			0)  [ -f /var/run/greeny-water-alert ]   && rm -rf /var/run/greeny-water-alert && notify "$zone: $message_waternormal" "${notification_waterlevel[@]}" ;;
+			1)  [ ! -f /var/run/greeny-water-alert ] && touch /var/run/greeny-water-alert  && notify "$zone: $message_waterlow"    "${notification_waterlevel[@]}" ;;
 		esac
+		
+		case $(date +%H) in
+			${!lightup})   [ $(cat /sys/class/gpio/${!lightrelay}/value) = 0 ] && echo 1 > /sys/class/gpio/${!lightrelay}/value && notify "$zone: $message_lightup"   "${notification_lightswitch[@]}" ;;
+			${!lightdown}) [ $(cat /sys/class/gpio/${!lightrelay}/value) = 1 ] && echo 0 > /sys/class/gpio/${!lightrelay}/value && notify "$zone: $message_lightdown" "${notification_lightswitch[@]}" ;;
+		esac
+		
 	done
-	sleep 1
+	sleep "$pollingtime"
 done
