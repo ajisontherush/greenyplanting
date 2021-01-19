@@ -19,7 +19,6 @@ shutdown () {
 }
 
 . greeny.conf
-. greeny.EN
 
 trap "shutdown" SIGINT
 notify "$message_start" "${notification_startstop[@]}"
