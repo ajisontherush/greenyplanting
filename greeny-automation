@@ -15,7 +15,7 @@ notify () {
 }
 
 shutdown () {
-	notify "$message_start" "$notification_startstop"
+	notify "$message_stop" "$notification_startstop"
 	exit
 }
 
