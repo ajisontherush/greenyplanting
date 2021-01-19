@@ -6,7 +6,7 @@ notify () {
 	for destination in "$@"; do
 		case "$destination" in
 			stdout)    echo "$(date) | $message";;
-			syslog)    logger "$message";;
+			syslog)    logger -i greeny "$message";;
 			telegram)  telegram-send "$message";;
 			*)         echo "Unknown destination: $destination";;
 		esac
