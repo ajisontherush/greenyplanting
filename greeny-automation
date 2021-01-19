@@ -10,6 +10,7 @@ notify () {
 			telegram)  telegram-send "$message";;
 			*)         echo "Unknown destination: $1";;
 		esac
+		shift
 	done
 }
 
