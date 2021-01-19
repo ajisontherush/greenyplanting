@@ -16,7 +16,7 @@ notify () {
 }
 
 shutdown () {
-	notify "$message_stop ${notification_startstop[*]}"
+	notify "$message_stop" "${notification_startstop[*]}"
 	exit
 }
 
@@ -24,7 +24,7 @@ shutdown () {
 . greeny.EN
 
 trap "shutdown" SIGINT
-notify "$message_start ${notification_startstop[*]}"
+notify "$message_start" "${notification_startstop[*]}"
 
 while true; do
 	for zone in "${zones[@]}"; do
@@ -32,8 +32,8 @@ while true; do
 		waterlevel="$zone"_waterlevel
 		
 		case $(cat /sys/class/gpio/${!waterlevel}/value) in
-			0)  [ -f /var/run/greeny-water-alert ] && rm -rf /var/run/greeny-water-alert && notify "$zone: $message_waternormal ${notification_waterlevel[*]}" ;;
-			1)  [ ! -f /var/run/greeny-water-alert ] && touch /var/run/greeny-water-alert && notify "$zone: $message_waterlow ${notification_waterlevel[*]}" ;;
+			0)  [ -f /var/run/greeny-water-alert ] && rm -rf /var/run/greeny-water-alert && notify "$zone: $message_waternormal" "${notification_waterlevel[*]}" ;;
+			1)  [ ! -f /var/run/greeny-water-alert ] && touch /var/run/greeny-water-alert && notify "$zone: $message_waterlow" "${notification_waterlevel[*]}" ;;
 		esac
 	done
 	sleep 1
