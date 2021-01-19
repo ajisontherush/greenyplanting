@@ -1,0 +1,6 @@
+message_start       = "Starting up"
+message_stop        = "Shutting down"
+message_lightup     = "Lights up"
+message_lightdown   = "Lights are off"
+message_waterlow    = "Water level is low"
+message_waternormal = "Water level is back to normal"
