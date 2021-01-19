@@ -4,14 +4,14 @@ notify () {
 	echo notify: "$@"
 	local message="$1"
 	shift
-	while [[ $# -gt 0 ]]; do
-		case "$1" in
+	for destination in "$@"; do
+		echo "$destination"
+		case "$destination" in
 			stdout)    echo "$(date) | $message";;
 #			syslog)    logger "$message";;
 			telegram)  telegram-send "$message";;
 			*)         echo "Unknown destination: $1";;
 		esac
-		shift
 	done
 }
 
