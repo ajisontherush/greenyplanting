@@ -1,18 +1,38 @@
 #!/usr/bin/env bash
 
-LEVEL=gpio2
+notify () {
+	local message="$1"
+	shift
+	while [[ $# -gt 0 ]]; do
+		case "$1" in
+			stdout)    echo "$(date) | $message";;
+#			syslog)    logger "$message";;
+			telegram)  telegram-send "$message";;
+			*)         echo "Unknown destination: $1";;
+		esac
+	done
+}
 
-trap "telegram-send 'Shitting down' && exit" SIGINT
-telegram-send 'Starting up'
+shutdown () {
+	notify "$message_start" "$notification_startstop"
+	exit
+}
 
-while true; do 
-	case $(cat /sys/class/gpio/$LEVEL/value) in
-		0)
-			[ -f /var/run/greeny-water-alert ] && rm -rf /var/run/greeny-water-alert && telegram-send "Water level is back to normal."
-		;;
-		1)
-			[ ! -f /var/run/greeny-water-alert ] && touch /var/run/greeny-water-alert && telegram-send "Water level is low!"
-		;;
-	esac
+. greeny.conf
+. greeny.EN
+
+trap "shutdown" SIGINT
+notify "$message_start" "$notification_startstop"
+
+while true; do
+	for zone in "${zones[@]}"; do
+		lightrelay="$zone"_lightrelay
+		waterlevel="$zone"_waterlevel
+		
+		case $(cat /sys/class/gpio/$waterlevel/value) in
+			0)  [ -f /var/run/greeny-water-alert ] && rm -rf /var/run/greeny-water-alert && notify "$zone: $message_waternormal" "notification_waterlevel" ;;
+			1)  [ ! -f /var/run/greeny-water-alert ] && touch /var/run/greeny-water-alert && notify "$zone: $message_waterlow" "notification_waterlevel" ;;
+		esac
+	done
 	sleep 1
 done
