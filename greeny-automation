@@ -43,7 +43,7 @@ while true; do
 		lightup="$zone"_lightup
 		lightdown="$zone"_lightdown
 		
-		case $(cat /sys/class/gpio/${!waterlevel}/value) in
+		case $(cat /sys/class/gpio/gpio"${!waterlevel}"/value) in
 			0)  [ -f /var/run/greeny-water-alert ]   && rm -rf /var/run/greeny-water-alert && notify "$zone: $message_waternormal" "${notification_waterlevel[@]}" ;;
 			1)  [ ! -f /var/run/greeny-water-alert ] && touch /var/run/greeny-water-alert  && notify "$zone: $message_waterlow"    "${notification_waterlevel[@]}" ;;
 		esac
