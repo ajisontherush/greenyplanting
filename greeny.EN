@@ -1,6 +1,7 @@
 message_start="Starting up"
 message_stop="Shutting down"
-message_gpiosetup="Setting up gpio..."
+message_gpiosetup="Setting up GPIOs..."
+message_gpiorelease="Releasing GPIOs..."
 message_done="Done"
 message_lightup="Lights up"
 message_lightdown="Lights are off"
