@@ -13,27 +13,44 @@ notify () {
 	done
 }
 
-shutdown () {
-	notify "$message_stop" "${notification_startstop[@]}"
-	exit
-}
-
-gpioconf () {
+gpiosetup () {
 	notify "$message_gpiosetup" "@{notification_system[@]}"
 	local zone
 	for zone in "${zones[@]}"; do
 		local lightrelay="$zone"_lightrelay
 		local waterlevel="$zone"_waterlevel
 		echo "${!waterlevel}" > /sys/class/gpio/export
+		echo in > /sys/class/gpio/gpio"${!waterlevel}"/direction
 		echo "${!lightrelay}" > /sys/class/gpio/export
+		echo out > /sys/class/gpio/gpio"${!lightrelay}"/direction
 	done
 	notify "$message_done" "@{notification_system[@]}"
+}
+
+gpiorelease () {
+	notify "$message_gpiorelease" "@{notification_system[@]}"
+	local zone
+	for zone in "${zones[@]}"; do
+		local lightrelay="$zone"_lightrelay
+		local waterlevel="$zone"_waterlevel
+		echo "${!waterlevel}" > /sys/class/gpio/unexport
+		echo "${!lightrelay}" > /sys/class/gpio/unexport
+	done
+	notify "$message_done" "@{notification_system[@]}"
+}
+
+shutdown () {
+	notify "$message_stop" "${notification_startstop[@]}"
+	gpiorelease
+	exit
 }
 
 . greeny.conf
 
 trap "shutdown" SIGINT
+
 notify "$message_start" "${notification_startstop[@]}"
+gpiosetup
 
 while true; do
 	for zone in "${zones[@]}"; do
