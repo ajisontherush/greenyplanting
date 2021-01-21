@@ -18,6 +18,18 @@ shutdown () {
 	exit
 }
 
+gpioconf () {
+	notify "$message_gpiosetup" "@{notification_system[@]}"
+	local zone
+	for zone in "${zones[@]}"; do
+		local lightrelay="$zone"_lightrelay
+		local waterlevel="$zone"_waterlevel
+		echo "${!waterlevel}" > /sys/class/gpio/export
+		echo "${!lightrelay}" > /sys/class/gpio/export
+	done
+	notify "$message_done" "@{notification_system[@]}"
+}
+
 . greeny.conf
 
 trap "shutdown" SIGINT
@@ -37,8 +49,8 @@ while true; do
 		esac
 		
 		case $(date +%H) in
-			${!lightup})   [ $(cat /sys/class/gpio/${!lightrelay}/value) = 0 ] && echo 1 > /sys/class/gpio/${!lightrelay}/value && notify "$zone: $message_lightup"   "${notification_lightswitch[@]}" ;;
-			${!lightdown}) [ $(cat /sys/class/gpio/${!lightrelay}/value) = 1 ] && echo 0 > /sys/class/gpio/${!lightrelay}/value && notify "$zone: $message_lightdown" "${notification_lightswitch[@]}" ;;
+			"${!lightup}")   [ $(cat /sys/class/gpio/gpio${!lightrelay}/value) = 0 ] && echo 1 > /sys/class/gpio/gpio"${!lightrelay}"/value && notify "$zone: $message_lightup"   "${notification_lightswitch[@]}" ;;
+			"${!lightdown}") [ $(cat /sys/class/gpio/gpio${!lightrelay}/value) = 1 ] && echo 0 > /sys/class/gpio/gpio"${!lightrelay}"/value && notify "$zone: $message_lightdown" "${notification_lightswitch[@]}" ;;
 		esac
 		
 	done
