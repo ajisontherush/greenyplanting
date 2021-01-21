@@ -14,7 +14,7 @@ notify () {
 }
 
 gpiosetup () {
-	notify "$message_gpiosetup" "@{notification_system[@]}"
+	notify "$message_gpiosetup" "${notification_system[@]}"
 	local zone
 	for zone in "${zones[@]}"; do
 		local lightrelay="$zone"_lightrelay
@@ -24,11 +24,11 @@ gpiosetup () {
 		echo "${!lightrelay}" > /sys/class/gpio/export
 		echo out > /sys/class/gpio/gpio"${!lightrelay}"/direction
 	done
-	notify "$message_done" "@{notification_system[@]}"
+	notify "$message_done" "${notification_system[@]}"
 }
 
 gpiorelease () {
-	notify "$message_gpiorelease" "@{notification_system[@]}"
+	notify "$message_gpiorelease" "${notification_system[@]}"
 	local zone
 	for zone in "${zones[@]}"; do
 		local lightrelay="$zone"_lightrelay
@@ -36,7 +36,7 @@ gpiorelease () {
 		echo "${!waterlevel}" > /sys/class/gpio/unexport
 		echo "${!lightrelay}" > /sys/class/gpio/unexport
 	done
-	notify "$message_done" "@{notification_system[@]}"
+	notify "$message_done" "${notification_system[@]}"
 }
 
 shutdown () {
