@@ -19,10 +19,8 @@ gpiosetup () {
 	for zone in "${zones[@]}"; do
 		local lightrelay="$zone"_lightrelay
 		local waterlevel="$zone"_waterlevel
-		echo "${!waterlevel}" > /sys/class/gpio/export
-		echo in > /sys/class/gpio/gpio"${!waterlevel}"/direction
-		echo "${!lightrelay}" > /sys/class/gpio/export
-		echo out > /sys/class/gpio/gpio"${!lightrelay}"/direction
+		[ -n "${!waterlevel}" ] && echo "${!waterlevel}" > /sys/class/gpio/export && echo in >  /sys/class/gpio/gpio"${!waterlevel}"/direction
+		[ -n "${!lightrelay}" ] && echo "${!lightrelay}" > /sys/class/gpio/export && echo out > /sys/class/gpio/gpio"${!lightrelay}"/direction
 	done
 	notify "$message_done" "${notification_system[@]}"
 }
@@ -33,8 +31,8 @@ gpiorelease () {
 	for zone in "${zones[@]}"; do
 		local lightrelay="$zone"_lightrelay
 		local waterlevel="$zone"_waterlevel
-		echo "${!waterlevel}" > /sys/class/gpio/unexport
-		echo "${!lightrelay}" > /sys/class/gpio/unexport
+		[ -n "${!waterlevel}" ] && echo "${!waterlevel}" > /sys/class/gpio/unexport
+		[ -n "${!lightrelay}" ] %% echo "${!lightrelay}" > /sys/class/gpio/unexport
 	done
 	notify "$message_done" "${notification_system[@]}"
 }
@@ -60,12 +58,12 @@ while true; do
 		lightup="$zone"_lightup
 		lightdown="$zone"_lightdown
 		
-		case $(cat /sys/class/gpio/gpio"${!waterlevel}"/value) in
+		[ -n "${!waterlevel}" ] && case $(cat /sys/class/gpio/gpio"${!waterlevel}"/value) in
 			0)  [ -f /var/run/greeny-water-alert ]   && rm -rf /var/run/greeny-water-alert && notify "$zone: $message_waternormal" "${notification_waterlevel[@]}" ;;
 			1)  [ ! -f /var/run/greeny-water-alert ] && touch /var/run/greeny-water-alert  && notify "$zone: $message_waterlow"    "${notification_waterlevel[@]}" ;;
 		esac
 		
-		case $(date +%H) in
+		[ -n "${!lightrelay}" ] && case $(date +%H) in
 			"${!lightup}")   [ $(cat /sys/class/gpio/gpio${!lightrelay}/value) = 0 ] && echo 1 > /sys/class/gpio/gpio"${!lightrelay}"/value && notify "$zone: $message_lightup"   "${notification_lightswitch[@]}" ;;
 			"${!lightdown}") [ $(cat /sys/class/gpio/gpio${!lightrelay}/value) = 1 ] && echo 0 > /sys/class/gpio/gpio"${!lightrelay}"/value && notify "$zone: $message_lightdown" "${notification_lightswitch[@]}" ;;
 		esac
