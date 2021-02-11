@@ -19,8 +19,11 @@ gpiosetup () {
 	for zone in "${zones[@]}"; do
 		local lightrelay="$zone"_lightrelay
 		local waterlevel="$zone"_waterlevel
-		[ -n "${!waterlevel}" ] && echo "${!waterlevel}" > /sys/class/gpio/export && echo in >  /sys/class/gpio/gpio"${!waterlevel}"/direction
-		[ -n "${!lightrelay}" ] && echo "${!lightrelay}" > /sys/class/gpio/export && echo out > /sys/class/gpio/gpio"${!lightrelay}"/direction
+		local waterpump="$zone"_waterpump
+		cd /sys/class/gpio
+		[ -n "${!lightrelay}" ] && echo "${!lightrelay}" > export && echo out > gpio"${!lightrelay}"/direction && echo 1 > gpio"${!lightrelay}"/value && echo 1 > gpio"${!lightrelay}"/active_low
+		[ -n "${!waterlevel}" ] && echo "${!waterlevel}" > export && echo in  > gpio"${!waterlevel}"/direction
+		[ -n "${!waterpump}" ]  && echo "${!waterpump}"  > export && echo out > gpio"${!waterpump}"/direction  && echo 1 > gpio"${!waterpump}"/value  && echo 1 > gpio"${!waterpump}"/active_low
 	done
 	notify "$message_done" "${notification_system[@]}"
 }
@@ -31,8 +34,11 @@ gpiorelease () {
 	for zone in "${zones[@]}"; do
 		local lightrelay="$zone"_lightrelay
 		local waterlevel="$zone"_waterlevel
-		[ -n "${!waterlevel}" ] && echo "${!waterlevel}" > /sys/class/gpio/unexport
-		[ -n "${!lightrelay}" ] %% echo "${!lightrelay}" > /sys/class/gpio/unexport
+		local waterpump="$zone"_waterpump
+		cd /sys/class/gpio
+		[ -n "${!lightrelay}" ] && echo "${!lightrelay}" > unexport
+		[ -n "${!waterlevel}" ] && echo "${!waterlevel}" > unexport
+		[ -n "${!waterpump}" ]  && echo "${!waterpump}"  > unexport
 	done
 	notify "$message_done" "${notification_system[@]}"
 }
@@ -41,6 +47,17 @@ shutdown () {
 	notify "$message_stop" "${notification_startstop[@]}"
 	gpiorelease
 	exit
+}
+
+waterpumpengage () {
+	local waterpump="$zone"_waterpump
+	local waterpumpdelay="$zone"_waterpumpdelay
+	if [ ! -f /var/run/greeny-"$zone"-waterpumpengaged ] ; then
+		touch /var/run/greeny-"$zone"-waterpumpengaged
+		echo 1 > /sys/class/gpio/gpio"${!waterpump}"/value & notify "$zone: $message_waterpumpon"  "${notification_waterpump[@]}"  & sleep "${!waterpumpdelay}"
+		echo 0 > /sys/class/gpio/gpio"${!waterpump}"/value & notify "$zone: $message_waterpumpoff" "${notification_waterpump[@]}"
+		rm /var/run/greeny-"$zone"-waterpumpengaged
+	fi
 }
 
 . greeny.conf
@@ -55,12 +72,13 @@ while true; do
 	
 		lightrelay="$zone"_lightrelay
 		waterlevel="$zone"_waterlevel
+		waterpump="$zone"_waterpump
 		lightup="$zone"_lightup
 		lightdown="$zone"_lightdown
 		
 		[ -n "${!waterlevel}" ] && case $(cat /sys/class/gpio/gpio"${!waterlevel}"/value) in
-			0)  [ -f /var/run/greeny-water-alert ]   && rm -rf /var/run/greeny-water-alert && notify "$zone: $message_waternormal" "${notification_waterlevel[@]}" ;;
-			1)  [ ! -f /var/run/greeny-water-alert ] && touch /var/run/greeny-water-alert  && notify "$zone: $message_waterlow"    "${notification_waterlevel[@]}" ;;
+			0)  [ -f /var/run/greeny-"$zone"-water-alert ]   && rm -rf /var/run/greeny-"$zone"-water-alert && notify "$zone: $message_waternormal" "${notification_waterlevel[@]}" ;; 
+			1)  [ ! -f /var/run/greeny-"$zone"-water-alert ] && touch /var/run/greeny-"$zone"-water-alert  && notify "$zone: $message_waterlow"    "${notification_waterlevel[@]}" && waterpumpengage & ;;
 		esac
 		
 		[ -n "${!lightrelay}" ] && case $(date +%H) in
